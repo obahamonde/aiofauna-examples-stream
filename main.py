@@ -4,9 +4,7 @@ import aiohttp_jinja2
 import jinja2
 from aiofauna import *
 from aiohttp_sse import sse_response
-from dotenv import load_dotenv
 
-load_dotenv()
 
 FAUNA_SECRET = os.environ.get("FAUNA_SECRET")
 
