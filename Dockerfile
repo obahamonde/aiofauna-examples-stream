@@ -10,4 +10,4 @@ RUN pip install --upgrade pip &&\
 COPY . /app
 
 
-CMD ["adev", "runserver", "livereload", "host", "0.0.0.0", "port", "8080"]
+CMD ["python", "main.py"]

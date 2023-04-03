@@ -4,7 +4,7 @@ import aiohttp_jinja2
 import jinja2
 from aiofauna import *
 from aiohttp_sse import sse_response
-
+from aiohttp import web
 
 FAUNA_SECRET = os.environ.get("FAUNA_SECRET")
 
@@ -24,34 +24,28 @@ async def sse_handler(request: Request) -> Response:
             await resp.send(_)
             await asyncio.sleep(1)
             
-async def create_app():
+            
+app = Application()
 
-    """Create application."""
+# Add routes
 
-    app = Application()
 
-    # Add routes
 
-    
-    
-    app.router.add_get("/", index_handler)
+app.router.add_get("/", index_handler)
 
-    app.router.add_get("/api/latency", sse_handler)
+app.router.add_get("/api/latency", sse_handler)
+
+app.router.add_static("/static", "static", show_index=True)
+
+jinja2_env = aiohttp_jinja2.setup(
+    app,
+    loader=jinja2.FileSystemLoader("templates"),
+    enable_async=True,
+)
+
+jinja2_env.variable_start_string = "@{"
+jinja2_env.variable_end_string = "}"
     
-    app.router.add_static("/static", "static", show_index=True)
-    
-    jinja2_env = aiohttp_jinja2.setup(
-        app,
-        loader=jinja2.FileSystemLoader("templates"),
-        enable_async=True,
-    )
-    
-    jinja2_env.variable_start_string = "@{"
-    jinja2_env.variable_end_string = "}"
-    
-    runner = AppRunner(app)
-    await runner.setup()
-    site = TCPSite(runner, "localhost", 8080)
-    await site.start()
-    while True:
-        await asyncio.sleep(1000)
+
+if __name__ == "__main__":
+    web.run_app(app, port=8080)
