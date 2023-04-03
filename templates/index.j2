@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <link rel="icon" href="/static/logo.svg" type="image/svg+xml" />
+    <title>Fauna Streams</title>
+
+
+
+</head>
+<body>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.js"></script>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.js"></script>
+   <div class="container main">
+   <img src="/static/logo.svg" alt="logo" width="100" height="100">   
+   <div>
+
+   
+   
+   
+  <div style="height: 300px">
+  <select id="chart-type" onchange="changeChartType(this.value)">
+        <option value="line">Line</option>
+        <option value="bar">Bar</option>
+        <option value="radar">Radar</option>
+        <option value="doughnut">Doughnut</option>
+        <option value="polarArea">Polar Area</option>
+        <option value="bubble">Bubble</option>
+        <option value="scatter">Scatter</option>
+    </select> 
+    <canvas id="canvas-foobar"></canvas>
+  </div>
+
+
+</div>
+<script>
+    var ctx = document.getElementById("canvas-foobar").getContext("2d");
+    var myChart = new Chart(ctx, {
+        type: "@{ chart_type }",
+        data: {
+            labels: [],
+            datasets: [{
+                label: "Latency",
+                data: [],
+                backgroundColor: "rgba(0, 99, 132, 0.2)",
+                borderColor: "rgba(0,99,132,1)",
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero:false
+                    }
+                }]
+            }
+        }
+    });
+    
+    var source = new EventSource("/api/latency");
+    source.onmessage = function(event) {
+        var faunaTime = moment(event.data);
+        var now = moment();
+        var latency = now.diff(faunaTime, "milliseconds");
+        myChart.data.labels.push(faunaTime.format("HH:mm:ss"));
+        myChart.data.datasets[0].data.push(latency);
+        myChart.update();
+    };
+    
+    while (myChart.data.labels.length > 100){
+        myChart.data.labels.push();
+        myChart.data.datasets[0].data.push();
+    }
+
+    const changeChartType = (type) => {
+        myChart.destroy();
+        myChart = new Chart(ctx, {
+            type: type,
+            data: {
+                labels: [],
+                datasets: [{
+                    label: "Latency",
+                    data: [],
+                    backgroundColor: "rgba(0, 99, 132, 0.2)",
+                    borderColor: "rgba(0,99,132,1)",
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero:false
+                        }
+                    }]
+                }
+            }
+        });
+    }
+
+
+</script>   
+</body>
